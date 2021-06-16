@@ -1,27 +1,51 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
 // Business Logic for AddressBook ---------
-function AddressBook(){
+function AddressBook() {
   this.contacts = {};
   this.currentId = 0;
 }
 
-AddressBook.prototype.addContact = function(contact) {
-  contact.id = this.assignId();
+AddressBook.prototype.addContact = function (contact) {
+  contact.id = this.assignContactId();
   this.contacts[contact.id] = contact;
 };
 
-AddressBook.prototype.assignId = function() {
+AddressBook.prototype.assignContactId = function () {
   this.currentId += 1;
   return this.currentId;
 };
 
-AddressBook.prototype.findContact = function(id) {
+AddressBook.prototype.findContact = function (id) {
   if (this.contacts[id] != undefined) {
     return this.contacts[id];
   }
   return false;
 };
 
-AddressBook.prototype.deleteContact = function(id) {
+AddressBook.prototype.deleteContact = function (id) {
   if (this.contacts[id] === undefined) {
     return false;
   }
@@ -29,19 +53,15 @@ AddressBook.prototype.deleteContact = function(id) {
   return true;
 };
 
+// Business Logic for Addresses
 function Addresses() {
   this.addresses = {};
   this.currentId = 0;
 }
 
-
-Addresses.prototype.addAddress = function(address) {
-  
+Addresses.prototype.addAddress = function (address) {
   address.id = this.assignAddressId();
-  console.log("test1",address.id)
-  
-  this.addresses[1] = address;
-  console.log("this.addresses",this.addresses)
+  this.addresses[address.id] = address;
 };
 
 Addresses.prototype.assignAddressId = function () {
@@ -65,16 +85,20 @@ Addresses.prototype.deleteAddress = function (id) {
 };
 
 // Business Logic for Contacts ---------
-function Contact(firstName, lastName, phoneNumber,emailAddress,addresses){
+function Contact(firstName, lastName, phoneNumber, email, addresses) {
   this.firstName = firstName;
   this.lastName = lastName;
   this.phoneNumber = phoneNumber;
-  this.emailAddress = emailAddress;
+  this.email = email;
   this.addresses = addresses;
 }
 
-function Address(type, street, region, postalCode, country) {
+Contact.prototype.fullName = function () {
+  return this.firstName + " " + this.lastName;
+};
 
+// Business Logic for Address
+function Address(type, street, region, postalCode, country) {
   this.type = type;
   this.street = street;
   this.region = region;
@@ -82,16 +106,20 @@ function Address(type, street, region, postalCode, country) {
   this.country = country;
 }
 
-Contact.prototype.fullName = function() {
-  return this.firstName + " " + this.lastName;
-};
-
 // User Interface Logic ---------
 let addressBook = new AddressBook();
 
+function displayContactDetails(addressBookToDisplay) {
+  let contactsList = $("ul#contacts");
+  let htmlForContactInfo = "";
+  Object.keys(addressBookToDisplay.contacts).forEach(function (key) {
+    const contact = addressBookToDisplay.findContact(key);
+    htmlForContactInfo += "<li id=" + contact.id + ">" + contact.firstName + " " + contact.lastName + "</li>";
+  });
+  contactsList.html(htmlForContactInfo);
+}
 
 function displayAddressDetails(contact) {
-  console.log("contact",contact)
   let addressList = $("ul#addresses");
   let htmlForAddressInfo = "";
   Object.keys(contact.addresses).forEach(function (key) {
@@ -101,78 +129,60 @@ function displayAddressDetails(contact) {
   addressList.html(htmlForAddressInfo);
 }
 
-function displayContactDetails(addressBookToDisplay) {
-  let contactsList = $("ul#contacts");
-  let htmlForContactInfo = "";
-  Object.keys(addressBookToDisplay.contacts).forEach(function(key) {
-    const contact = addressBookToDisplay.findContact(key);
-    htmlForContactInfo += "<li id=" + contact.id + ">" + contact.firstName + " " + contact.lastName +  "</li>";
-  });
-  contactsList.html(htmlForContactInfo);
-}
 function showContact(contactId) {
   const contact = addressBook.findContact(contactId);
   $("#show-contact").show();
   $(".first-name").html(contact.firstName);
   $(".last-name").html(contact.lastName);
   $(".phone-number").html(contact.phoneNumber);
-  $(".email-address").html(contact.emailAddress);
+  $(".email").html(contact.email);
   $(".address").html(displayAddressDetails(contact.addresses));
   let buttons = $("#buttons");
   buttons.empty();
-  buttons.append("<button class='deleteButton' id=" +  + contact.id + ">Delete</button>");
+  buttons.append("<button class='deleteButton' id=" + + contact.id + ">Delete</button>");
 }
 
 function attachContactListeners() {
-  $("ul#contacts").on("click", "li", function() {
+  $("ul#contacts").on("click", "li", function () {
     showContact(this.id);
   });
- $("#buttons").on("click", ".deleteButton", function() {
+  $("#buttons").on("click", ".deleteButton", function () {
     addressBook.deleteContact(this.id);
     $("#show-contact").hide();
     displayContactDetails(addressBook);
   });
 }
 
-$(document).ready(function() {
-  
-  $("form#new-contact").submit(function(event) {
-    attachContactListeners();
+$(document).ready(function () {
+  attachContactListeners();
+  $("form#new-contact").submit(function (event) {
     event.preventDefault();
-    
     const inputtedFirstName = $("input#new-first-name").val();
     const inputtedLastName = $("input#new-last-name").val();
     const inputtedPhoneNumber = $("input#new-phone-number").val();
-    const inputtedEmailAddress = $("input#new-email-address").val();
+    const inputtedEmail = $("input#new-email-address").val();
     const inputtedAddressType = $("input[name='type']:checked").val();
     const inputtedAddressStreet = $("input#new-street").val();
     const inputtedAddressRegion = $("input#new-region").val();
     const inputtedAddressPostalCode = $("input#new-postal-code").val();
     const inputtedAddressCountry = $("input#new-country").val();
-
-    console.log("inputtedAddressCountry",inputtedAddressCountry)
-   // $("input#new-first-name").val("");
-   // $("input#new-last-name").val("");
-   // $("input#new-phone-number").val("");
-   // $("input#new-email-address").val("");
-   // $("input#new-type").val("");
-   // $("input#new-street").val("");
-   // $("input#new-region").val("");
-   // $("input#new-postal-code").val("");
-   // $("input#new-country").val("");
-   
+    $("input#new-first-name").val("");
+    $("input#new-last-name").val("");
+    $("input#new-phone-number").val("");
+    $("input#new-email-address").val("");
+    $("input#new-type").val("");
+    $("input#new-street").val("");
+    $("input#new-region").val("");
+    $("input#new-postal-code").val("");
+    $("input#new-country").val("");
     let newAddresses = new Addresses();
-    let FullAddress = new Address(inputtedAddressType, inputtedAddressStreet, inputtedAddressRegion, inputtedAddressPostalCode, inputtedAddressCountry)
-    console.log("FullAddress",FullAddress)
-    newAddresses.addAddress(FullAddress)
-    console.log("NewAddress",newAddresses)
+    const newAddress1 = new Address (inputtedAddressType, inputtedAddressStreet, inputtedAddressRegion, inputtedAddressPostalCode, inputtedAddressCountry);
+    newAddresses.addAddress(newAddress1);
 
-    const newContact = new Contact(inputtedFirstName, inputtedLastName, inputtedPhoneNumber, inputtedEmailAddress, newAddresses);
-   // const newContact = new Contact(inputtedFirstName, inputtedLastName, inputtedPhoneNumber, inputtedEmail, newAddress);
-    console.log("newContact ",newContact)
+    console.log("newAddresses",newAddresses)
+    const newContact = new Contact(inputtedFirstName, inputtedLastName, inputtedPhoneNumber, inputtedEmail, newAddresses);
+    console.log("newContact",newContact)
     addressBook.addContact(newContact);
-   // displayAddressDetails(newAddress);
-      console.log("contact",Contact)
-    displayContactDetails(addressBook); 
+    displayContactDetails(addressBook);
   });
 });
